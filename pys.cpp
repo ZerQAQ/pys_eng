@@ -1,6 +1,9 @@
 #include<cstdio>
 #include<cmath>
 #include<ctime>
+#include<algorithm>
+
+#define PYS_INCLUDED
 
 namespace pys{
 
@@ -8,6 +11,7 @@ namespace pys{
 	float XMAX = 400;
 	float YMIN = -200;
 	float YMAX = 250;
+	const int COLLISION_DETC_TIME_PER_SEPT = 1;
 
 	class fpair
 	{
@@ -82,11 +86,15 @@ namespace pys{
 				this->center = point((leftup.x + rightdown.x) / 2, (leftup.y + rightdown.y) / 2);
 			}
 
-			void update(const float time){
+			void update_0(const float time){
 				update_1(time);
 				this->leftup += this->speed * time;
 				this->rightdown += this->speed * time;
 				this->rate = sqrt(this->speed.x * this->speed.x + this->speed.y * this->speed.y);
+			}
+
+			void update(const float time){
+				for(int i = 0; i < COLLISION_DETC_TIME_PER_SEPT; i++) update_0(time / COLLISION_DETC_TIME_PER_SEPT);
 			}
 	};
 
@@ -118,14 +126,20 @@ namespace pys{
 				flag_point = center + relat_vector;
 			}
 
-			void update(float time){
+			void update_0(float time){
 				count_force(time);
+			//	printf("%lf, %lf\n", center.x, center.y);
 				this->acceleration = this->force / mass;
 				this->speed += this->acceleration * time;
 				this->center += this->speed * time;
 				this->flag_point += this->speed * time;
 				this->rate = sqrt(this->speed.x * this->speed.x + this->speed.y * this->speed.y);
 				transfrom(anspeed * time);
+			}
+
+			void update(const float time){
+				for(int i = 0; i < COLLISION_DETC_TIME_PER_SEPT; i++) update_0(time / (float)COLLISION_DETC_TIME_PER_SEPT);
+	//			printf("%lf, %lf\n", force.x, force.y);
 			}
 	};
 }

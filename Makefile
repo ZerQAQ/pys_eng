@@ -2,16 +2,17 @@
 gxx := g++
 flag := -W
 libr := -lopengl32 -lfreeglut -lglu32
-name := main
 
-all: $(name)
+all: main pys gra
 
 run: all
-	./$(name)
+	./main
 
-main : $(name).cpp phy.cpp
-	$(gxx) $(name).cpp $(flag) -o $(name) $(libr)
-	$(gxx) phy.cpp $(flag) -c
+main : main.cpp
+	$(gxx) main.cpp $(flag) -o main $(libr)
 
-phy : phy.o
-	$(gxx) phy.cpp $(flag) -c
+pys : pys.o
+	$(gxx) pys.cpp $(flag) -c
+
+gra : gra.o
+	$(gxx) gra.cpp $(flag) -c
