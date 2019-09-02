@@ -138,10 +138,17 @@ namespace gra{
 		//绘制矩形
 		gl_draw_quads(
 			point(A.leftup.x, A.leftup.y),
-			point(A.leftup.x, A.rightdown.y),
+			point(A.leftdown.x, A.leftdown.y),
 			point(A.rightdown.x, A.rightdown.y),
-			point(A.rightdown.x, A.leftup.y),
+			point(A.rightup.x, A.rightup.y),
 			col
+		);
+
+		//圆的标志线 用于更好的显示旋转效果
+		gl_draw_line(
+			point(A.center.x, A.center.y),
+			point(A.rightup.x, A.rightup.y),
+			color(200, 0, 0)
 		);
 	}
 
@@ -157,11 +164,11 @@ namespace gra{
 		glEnd();
 
 		//圆的标志线 用于更好的显示旋转效果
-		glBegin(GL_LINES);
-		glColor3f(200, 0, 0);
-		glVertex2f(A.center.x, A.center.y);
-		glVertex2f(A.flag_point.x, A.flag_point.y);
-		glEnd();
+		gl_draw_line(
+			point(A.center.x, A.center.y),
+			point(A.flag_point.x, A.flag_point.y),
+			color(200, 0, 0)
+		);
 	}
 
 	void update(pys::rectangle &object){
