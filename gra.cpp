@@ -153,7 +153,6 @@ namespace gra{
 	}
 
 	void draw_circle(pys::circle A, color col = WHITE, int pn = -1){
-		//绘制圆
 		glBegin(GL_POLYGON);
 		glColor3f(col.r, col.g, col.b);
 		if(pn == -1) pn = A.radius;
@@ -162,13 +161,31 @@ namespace gra{
 			glVertex2f(A.center.x + cos(xt) * A.radius, A.center.y + sin(xt) * A.radius);
 		}
 		glEnd();
-
 		//圆的标志线 用于更好的显示旋转效果
 		gl_draw_line(
 			point(A.center.x, A.center.y),
 			point(A.flag_point.x, A.flag_point.y),
 			color(200, 0, 0)
 		);
+	}
+
+	void draw(pys::world& world){
+		const int len = world.size();
+		for(int i = 0; i < len; i++){
+			switch(world[i]->type){
+				case 1:
+					draw_circle(*(pys::circle*) world[i]);
+					break;
+				case 2:
+					draw_rectangle(*(pys::rectangle*) world[i]);
+					break;
+				default:;
+			}
+		}
+	}
+
+	void update(pys::world &world){
+		world.update(FRAME_SPAN);
 	}
 
 	void update(pys::rectangle &object){

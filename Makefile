@@ -11,8 +11,8 @@ run: all
 main : main.cpp
 	$(gxx) main.cpp $(flag) -o main $(libr)
 
+gra : gra.o pys
+	$(gxx) gra.cpp $(flag) -c
+
 pys : pys.o
 	$(gxx) pys.cpp $(flag) -c
-
-gra : gra.o
-	$(gxx) gra.cpp $(flag) -c

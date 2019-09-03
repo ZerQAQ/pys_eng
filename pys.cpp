@@ -1,6 +1,8 @@
 #include<cstdio>
 #include<cmath>
 #include<ctime>
+#include<string>
+#include<vector>
 
 #define PYS_INCLUDED
 
@@ -84,9 +86,16 @@ namespace pys{
 		point center;
 		vector speed, acceleration, force;
 		float rate, mass, anglespeed, restitution;
+		int type;
+		/*
+			类型：
+			1.园
+			2.矩形
+		*/
 
-		body (point center = point(0, 0), float mass = 0, vector speed = vector(0, 0))
-			:center(center), speed(speed), mass(mass){
+		body (point center = point(0, 0), float mass = 0,
+		 vector speed = vector(0, 0), int type = 0)
+			:center(center), speed(speed), mass(mass), type(type){
 				acceleration = force = vector(0, 0);
 				rate = sqrt(speed.x * speed.x + speed.y * speed.y);
 				anglespeed = 0;
@@ -141,27 +150,41 @@ namespace pys{
 				force += vector(RESTITUTION_ON_WALL * mass * - speed.x / time, 0);
 		}
 
-		void update_1(const float &time){
+		void update_1(const float time){
 			count_force(time);
 			acceleration = force / mass;
 			speed += acceleration * time;
 			center += speed * time;
 		}
+
+		virtual void update(const float time){}
 	};
 
 	class rectangle: public body {
 		public:
-			point leftup, leftdown, rightup, rightdown;
+			point leftup, leftdown, rightup, rightdown;//矩形的四个顶点
+			float xlen, ylen; //x轴上的边长和y轴上的边长
 
-			rectangle(point leftup,
-					  point rightdown,
-					  float mass,
-					  vector speed = vector(0, 0))
-					  :body(point((leftup.x + rightdown.x) / 2, (leftup.y + rightdown.y) / 2), mass, speed),
-			 		   leftup(leftup), rightdown(rightdown){
+			rectangle(point leftup, point rightdown,
+					  float mass, vector speed = vector(0, 0))
+					  :body(point((leftup.x + rightdown.x) / 2, (leftup.y + rightdown.y) / 2),
+					  mass, speed, 2),
+			 		  leftup(leftup), rightdown(rightdown){
 							leftdown = point(leftup.x , rightdown.y);
 							rightup = point(rightdown.x, leftup.y);
+							xlen = rightdown.x - leftdown.x;
+							ylen = leftup.y - leftdown.y;
 					}
+
+			rectangle(point center, float xlen, float ylen,
+					float mass, vector speed = vector(0, 0))
+					  :body(center, mass, speed, 2),
+					  xlen(xlen), ylen(ylen){
+						  leftdown.x = leftup.x = center.x - xlen / 2;
+						  rightdown.x = rightup.x = center.x + xlen / 2;
+						  leftup.y = rightup.y = center.y + ylen / 2; 
+						  leftdown.y = rightdown.y = center.y - ylen / 2;
+					  }
 
 			float max_x(){
 				return max(max(leftdown.x, leftup.x), max(rightdown.x, rightup.x));
@@ -205,8 +228,9 @@ namespace pys{
 			point flag_point;
 			float radius;
 
-			circle(point center, float radius, float mass, vector speed = vector(0, 0))
-			:body(center, mass, speed), radius(radius){
+			circle(point center, float radius, float mass,
+			 vector speed = vector(0, 0))
+			:body(center, mass, speed, 1), radius(radius){
 				flag_point = center + point(radius, 0);
 			}
 
@@ -237,7 +261,8 @@ namespace pys{
 			}
 
 			void update(const float time){
-				for(int i = 0; i < COLLISION_DETC_TIME_PER_SEPT; i++) update_0(time / (float)COLLISION_DETC_TIME_PER_SEPT);
+				for(int i = 0; i < COLLISION_DETC_TIME_PER_SEPT; i++)
+					update_0(time / (float)COLLISION_DETC_TIME_PER_SEPT);
 			//	printf("%lf, %lf\n", force.x, force.y);
 			}
 	};
@@ -292,5 +317,74 @@ namespace pys{
 
 	bool collision_detc(rectangle *A, rectangle *B){
 		vector rel_pos = B->center - A->center;
+		float x_dis = A->xlen + B->xlen, x_pene;
+		x_dis /= 2;
+
+		if(x_pene = x_dis - fabs(rel_pos.x) > 0){ //x轴投影检测
+			float y_dis = A->ylen + B->ylen, y_pene;
+			y_dis /= 2;
+			if(y_pene = y_dis - fabs(rel_pos.y) > 0){ //y轴投影检测
+				coll_inf inf(A, B);
+				if(x_pene > y_pene){
+
+				}
+			}
+		}
 	}
+
+	template <typename T>
+	bool collision_detc(T A, body *B){
+		switch(B->type){
+			case 1: return collision_detc(A, (circle*) B);
+			case 2: return collision_detc(A, (rectangle*) B);
+		}
+	}
+
+	bool collision_detc(body *A, body *B){
+		switch(A->type){
+			case 1: return collision_detc<circle*>((circle*) A, B);
+			case 2: return collision_detc<rectangle*>((rectangle*) A, B);
+		}
+	}
+
+
+
+	struct world{
+		std::vector<body*> world;
+
+		void add_circle(point center, float radius,
+		 float mass, vector speed = vector(0, 0)){
+			world.push_back(new circle(center, radius, mass, speed));
+		}
+		
+		void add_rectangle(point leftup, point rightdown,
+		 float mass, vector speed = vector(0, 0)){
+			world.push_back(new rectangle(leftup, rightdown, mass, speed));
+		}
+
+		void add_rectangle(point center, float xlen, float ylen,
+		 float mass, vector speed = vector(0, 0)){
+			world.push_back(new rectangle(center, xlen, ylen, mass, speed));
+		}
+
+		body* operator[] (const int index){
+			return world[index];
+		}
+
+		void update(float time){
+			const int len = world.size();
+			for(int i = 0; i < len; i++){
+				for(int j = i + 1; j < len; j++){
+					collision_detc(world[i], world[j]);
+				}
+			}
+			for(int i = 0; i < len; i++){
+				world[i]->update(time);
+			}
+		}
+
+		int size(){
+			return world.size();
+		}
+	};
 }
