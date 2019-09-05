@@ -3,6 +3,9 @@
 		"cstdio": "cpp",
 		"chrono": "cpp",
 		"cmath": "cpp",
-		"cstdlib": "cpp"
+		"cstdlib": "cpp",
+		"vector": "cpp",
+		"string": "cpp",
+		"ctime": "cpp"
 	}
 }

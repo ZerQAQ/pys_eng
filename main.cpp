@@ -1,6 +1,4 @@
-#include<algorithm>
-#include<cstring>
-#include<vector>
+#include<cstdio>
 #include"gra.cpp"
 
 pys::world world;

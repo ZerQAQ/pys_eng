@@ -1,6 +1,5 @@
-#ifndef PYS_INCLUDED
-	#include"pys.cpp"
-#endif
+#include"pys.h"
+#include<ctime>
 
 #if defined(_WIN32) || defined(WIN32)
 	#include<windows.h>
@@ -12,8 +11,8 @@
 
 #include<GL/freeglut.h>
 
-
 namespace gra{
+	
 	struct color{ //颜色
 		GLfloat r, g, b, alp;
 		color(GLfloat r, GLfloat g, GLfloat b, GLfloat apl = 1.0):r(r / 255), g(g / 255), b(b / 255), alp(alp) {}

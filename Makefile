@@ -1,6 +1,6 @@
 
 gxx := g++
-flag := -W
+flag := -W -I./
 libr := -lopengl32 -lfreeglut -lglu32
 
 all: main pys gra
@@ -14,5 +14,5 @@ main : main.cpp
 gra : gra.o pys
 	$(gxx) gra.cpp $(flag) -c
 
-pys : pys.o
-	$(gxx) pys.cpp $(flag) -c
+pys : pys.h.gch
+	$(gxx) pys.h $(flag) -c
