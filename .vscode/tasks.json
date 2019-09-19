@@ -1,0 +1,22 @@
+{
+    "tasks": [
+      {
+        "type": "shell",
+        "label": "g++.exe build & run active file",
+        "command": "g++",
+        "args": [
+            "-g",
+            "${workspaceFolder}\\o\\*.o",
+            "-o",
+            "${workspaceFolder}\\main",
+            "-lopengl32",
+            "-lfreeglut",
+            "-lglu32",
+        ],
+        "options": {
+          "cwd": "C:\\MinGW\\bin"
+        }
+      }
+    ],
+    "version": "2.0.0"
+  }

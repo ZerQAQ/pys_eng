@@ -1,7 +1,6 @@
-#include"test.h"
+#include"var.h"
+#include"A.h"
 
 int main(){
-    A test(1);
-    test.print();
-    return 0;
+    print_A();
 }
