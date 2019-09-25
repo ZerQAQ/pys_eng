@@ -1,62 +1,72 @@
 #ifndef PYS_FPAIR_H
 #define PYS_FPAIR_H
-#include<cmath>
-#include<algorithm>
-using std::max;
-using std::min;
-using std::swap;
+
+typedef float real;
 
 namespace pys{
-    class fpair
-        {
-            public:
-                float x, y;
-                fpair(float x = 0, float y = 0);
+    class Fpair{
+        public:
+            real x, y;
+            void set(real, real);
 
-                float sqlength();
-                
-                float length();
+            Fpair(real x = 0, real y = 0);
 
-                fpair operator + (const fpair&);
-                
-                void operator += (const fpair&);
+            real sqrlen();
+            
+            real len();
 
-                fpair operator - (const fpair&);
+            Fpair operator + (const Fpair&);
+            
+            void operator += (const Fpair&);
 
-                void operator -= (const fpair&);
+            Fpair operator - (const Fpair&);
 
-                fpair operator * (const float&);//数量乘
+            Fpair operator - () const;
 
-                void operator *= (const float&);
+            void operator -= (const Fpair&);
 
-                float operator * (const fpair&);//点乘
+            Fpair operator * (const real&);//数量乘
 
-                void operator *= (const fpair&);
+            void operator *= (const real&);
 
-                fpair operator / (const float&);//向量与标量除
+            real operator * (const Fpair&);//点乘
 
-                void operator /= (const float&);
+            void operator *= (const Fpair&);
 
-                void standard();
+            Fpair operator / (const real&);//向量与标量除
 
-                fpair right_normal();
+            void operator /= (const real&);
 
-                void rotate(const float);
+            void normalize();
 
-        }; 
+            Fpair right_normal();
 
-        typedef fpair point;
-        typedef fpair vector;
+            void rotate(const real);
 
-        vector rotate(vector vect, const float angle, const vector center = vector(0, 0));
+    }; 
 
-        float sqr(float);
+    typedef Fpair Point;
+    typedef Fpair Vector;
 
-        float cross_product(const vector, const vector);
+    Fpair operator * (float s, const Fpair&);
 
-        vector cross_product(const vector, const float);
-        
-        vector cross_product(const float, const vector);
+    Vector rotate(Vector vect, const real angle, const Vector center = Vector(0, 0));
+
+    real sqr(real);
+
+    real cross_product(const Vector, const Vector);
+
+    Vector cross_product(const Vector, const real);
+    
+    Vector cross_product(const real, const Vector);
+
+    real max(real a, real b);
+
+    real min(real a, real b);
+
+    int max(int a, int b);
+
+    int min(int a, int b);
 }
 
 #endif

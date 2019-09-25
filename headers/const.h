@@ -4,15 +4,17 @@
 #include"fpair.h"
 
 namespace pys{
-    extern float XMIN;
-    extern float XMAX;
-    extern float YMIN;
-    extern float YMAX;
-    extern float RESTITUTION_ON_WALL;
     extern int COLLISION_DETC_TIME_PER_SEPT;
-    extern float PI;
+    extern real PI;
+    extern real DENSITY;
+    extern real PENETRATION_ALLOWANCE;
+    extern real PENETRATION_CORRECT_PERCENT;
+    extern real DEFAULT_SF;
+    extern real DEFAULT_DF;
+    extern real DEFAULT_RESTITUTION;
+    extern real EPSILON;
 
-    extern vector G;
+    extern Vector G;
 }
 
 #endif

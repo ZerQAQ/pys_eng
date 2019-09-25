@@ -1,36 +1,32 @@
-#ifndef PYS_COLL_INF_H
-#define PYS_COLL_INF_H
+#ifndef COLL_INF
+#define COLL_INF
 
-#include"polygon.h"
 #include"fpair.h"
 #include"body.h"
-#include<cmath>
 
 namespace pys{
 
-    float inv(float);
-
-    float sqr(float);
-
-    struct coll_inf
+    struct Coll_inf
     {
-        body *A;
-        body *B;
-        //碰撞对象 A碰撞B
-        int contact_count;
-        point contact_point[5];
-        //碰撞点
-        float df, sf, e, penetration;
-        vector normal;
+        Body *A, *B;
 
-        coll_inf(body*, body*);
+        real peneration;
+        real static_friction, dynamic_friction, restitution;
+        
+        Vector impulse[2], tangent_impluse[2], ra[2], rb[2];
+        Vector normal;
+        Vector contact_points[2];
+        int contact_count;
+        
+        Coll_inf(Body *a, Body* b);
 
         void init();
 
-        void solve();
+        void apply_impulse();
+
+        void position_correct();
     };
 
-    void count_contact_points(polygon *, polygon *, coll_inf &);
 }
 
 #endif

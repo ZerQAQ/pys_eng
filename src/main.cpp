@@ -1,58 +1,139 @@
-#include<cstdio>
 #include"pys.h"
-#include"gra.h"
-#include<vector>
+#include<ctime>
 
+#if defined(_WIN32) || defined(WIN32)
+	#include<windows.h>
+	#ifndef GLUT_DISABLE_ATEXIT_HACK
+		#define GLUT_DISABLE_ATEXIT_HACK
+	#endif
+#endif
 
-pys::world world;
+#include<GL/freeglut.h>
+
+int WINDOWS_WIDTH = 1000; //窗口设置
+int WINDOWS_HEIGHT = 600;
+int FPS = 120; //帧率
+float FRAME_SPAN =  1.0 / FPS;
+float PI = 3.1415926535f;
+pys::Color BACKGROUND_COLOR = pys::Color(15.0, 15.0, 19.0); //背景颜色 
+char WINDOWS_TITLE[100] = "owo";
+
+clock_t last_time = clock();
+const clock_t dt = FRAME_SPAN * 1000;
+
+pys::World w(FRAME_SPAN);
+pys::Circle c(30);
+
+void initGL(){ 
+    //设置背景颜色和抗锯齿
+    glClearColor(15.0 / 255.0, 15.0 / 255.0, 19.0 / 255.0, 1.0);
+    glPointSize(4);
+    glLineWidth(2);
+    /*
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA);
+    glEnable(GL_LINE_SMOOTH);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glEnable(GL_POLYGON_SMOOTH);
+    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+    */
+}
+
+void reshape(const GLsizei width, GLsizei height){
+    //窗口大小变化回调函数
+    if(height == 0) height = 1; 
+    //防止被0除
+    GLfloat aspect = (GLfloat)width / (GLfloat)height; 
+    //计算长宽比
+
+    glViewport(0, 0, width, height);
+    //设置视窗
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    if(aspect > (GLfloat)WINDOWS_WIDTH / WINDOWS_HEIGHT){
+        gluOrtho2D((GLfloat)-WINDOWS_HEIGHT * aspect / 2,
+                (GLfloat)WINDOWS_HEIGHT * aspect / 2,
+                (GLfloat)-WINDOWS_HEIGHT / 2,
+                (GLfloat)WINDOWS_HEIGHT / 2);
+    } //长宽比偏小 拉长宽
+    else{
+        gluOrtho2D((GLfloat)-WINDOWS_WIDTH / 2,
+                (GLfloat)WINDOWS_WIDTH / 2,
+                (GLfloat)-WINDOWS_WIDTH / 2 / aspect,
+                (GLfloat)WINDOWS_WIDTH / 2 / aspect);
+    } //长宽比偏大 拉长高
+
+}
+
+void keyboard(const unsigned char key, const int x, const int y){
+    switch(key){
+        case 27: //esc退出
+            glutLeaveMainLoop();
+        default:
+            break;
+    }
+}
 
 void display(){
+		//循环回调函数
+    glClear(GL_COLOR_BUFFER_BIT);
+    glLineWidth(2.0);
+    glPolygonMode(GL_FRONT, GL_LINE);
+    glPolygonMode(GL_BACK, GL_LINE);
 
-	int len = world.size();
-	gra::update(world);
-	gra::draw(world);
+    w.render();
+    w.update();
+
+    glFlush();
 }
 
-int main(){
-	int k = 0;
-	gra::set_background_color(gra::color(15.0, 15.0, 19.0));
-	gra::set_windows_size(1000, 600);
-	gra::set_fps(120);
+void idle(){ //锁帧
+    static clock_t now;
+    now = clock();
+    if(dt <= now - last_time){
+        last_time = now;
+        display();
+    }
+}
 
-/*
-	world.add_circle(pys::point(100, 200), 20, 10, pys::vector(200, 50));
-	world.add_circle(pys::point(-100, 200), 20, 10, pys::vector(-300, 0));
-	world.add_circle(pys::point(-200, 200), 20, 10, pys::vector(-100, 70));
-	world.add_circle(pys::point(200, 80), 20, 10, pys::vector(260, -80));
-	world.add_circle(pys::point(150, 20), 20, 10, pys::vector(150, 0));
-	world.add_circle(pys::point(0, 200), 20, 10, pys::vector(250, 0));
-	world.add_circle(pys::point(-50, 200), 20, 10, pys::vector(300, 0));
-	world.add_circle(pys::point(-50, 300), 20, 10, pys::vector(20, 0));
-	world.add_circle(pys::point(-300, 200), 20, 10, pys::vector(0, 0));
-	world.add_circle(pys::point(-150, 100), 20, 10, pys::vector(0, 0));
-*/
+int main(int argc, char** argv){
+    glutInit(&argc, argv);
+//	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE); //启用双缓冲，避免闪屏
 
+    initGL();
 
-	world.add_polygon(pys::point(-200, 200), 3, 50, 10, pys::vector(100, 20));
-	world.add_polygon(pys::point(0, 200), 5, 30, 10, pys::vector(70, 50));
-	world.add_polygon(pys::point(200, 200), 6, 30, 10, pys::vector(-40, -30));
+    glutInitWindowPosition(2000, 50);
+    glutInitWindowSize(WINDOWS_WIDTH, WINDOWS_HEIGHT); //启用窗口
+    glutCreateWindow(WINDOWS_TITLE);
 
-	std::vector<pys::point> rec;
-	rec.push_back(pys::point(-250, -140));
-	rec.push_back(pys::point(250, -140));
-	rec.push_back(pys::point(250, -160));
-	rec.push_back(pys::point(-250, -160));
+    std::vector<pys::Point> v_;
+    v_.push_back(pys::Point(0, 0));
+    v_.push_back(pys::Point(30, 0));
+    v_.push_back(pys::Point(30, 30));
+    v_.push_back(pys::Point(0, 30));
 
-	world.add_polygon(rec, 50, pys::vector(0, 0));
+    std::vector<pys::Point> v;
+    v.push_back(pys::Point(-200, 0));
+    v.push_back(pys::Point(200, 0));
+    v.push_back(pys::Point(200, 10));
+    v.push_back(pys::Point(-200, 10));
 
-	rec[0] = pys::point(-400, -200);
-	rec[1] = pys::point(+400, -200);
-	rec[2] = pys::point(+400, -210);
-	rec[3] = pys::point(-400, -210);
+    pys::Polygon q(v_);
+    pys::Polygon p(v);
 
-	world.add_polygon(rec, 0, pys::vector(0, 0));
+    w.add(&q, 0, 200);
+    w.add(&q, 25, 100);
+    w.add(&p, 0, -200);
+    w.world[2]->set_static();
 
-	gra::set_loop_func(display);
-	gra::start(); 
+    initGL();//设置背景颜色和抗锯齿
+    glutReshapeFunc(&reshape);
+    glutDisplayFunc(&display);
+    glutKeyboardFunc(&keyboard);
+    glutIdleFunc(&idle); //设置各种回调函数
+
+    glutMainLoop(); //启用主循环
     return 0;
 }
+	

@@ -1,94 +1,126 @@
 #include"fpair.h"
+#include<algorithm>
+#include<cmath>
 
 namespace pys{
 
-	fpair::fpair(float x, float y):x(x), y(y) {}
+	Fpair::Fpair(real x, real y):x(x), y(y) {}
 
-	float fpair::sqlength(){
+	void Fpair::set(real x_, real y_){
+		x = x_;
+		y = y_;
+	}
+
+	real Fpair::sqrlen(){
 		return x * x + y * y;
 	}
 	
-	float fpair::length(){
-		return sqrt(sqlength());
+	real Fpair::len(){
+		return sqrt(sqrlen());
 	}
 
-	fpair fpair::operator + (const fpair& oth){
-		return fpair(this->x + oth.x, this->y + oth.y);
+	Fpair Fpair::operator + (const Fpair& oth){
+		return Fpair(this->x + oth.x, this->y + oth.y);
 	}
 	
-	void fpair::operator += (const fpair& oth){
+	void Fpair::operator += (const Fpair& oth){
 		*this = *this + oth;
 	}
 
-	fpair fpair::operator - (const fpair& oth){
-		return fpair(this->x - oth.x, this->y - oth.y);
+	Fpair Fpair::operator - (void) const{
+		return Fpair(-x, -y);
 	}
 
-	void fpair::operator -= (const fpair& oth){
+	Fpair Fpair::operator - (const Fpair& oth){
+		return Fpair(this->x - oth.x, this->y - oth.y);
+	}
+
+	void Fpair::operator -= (const Fpair& oth){
 		*this = *this - oth;
 	}
 
-	fpair fpair::operator * (const float& v){
-		return fpair(this->x * v, this->y * v);
+	Fpair Fpair::operator * (const real& v){
+		return Fpair(this->x * v, this->y * v);
 	}//数量乘
 
-	void fpair::operator *= (const float& v){
+	void Fpair::operator *= (const real& v){
 		*this = *this * v;
 	}
 
-	float fpair::operator * (const fpair& oth){
+	real Fpair::operator * (const Fpair& oth){
 		return x * oth.x + y * oth.y;
 	}//点乘
 
-	void fpair::operator *= (const fpair& oth){
+	void Fpair::operator *= (const Fpair& oth){
 		*this = *this * oth;
 	}
 
-	fpair fpair::operator / (const float& v){
-		return fpair(this->x / v, this->y / v);
+	Fpair Fpair::operator / (const real& v){
+		return Fpair(this->x / v, this->y / v);
 	}
 	//重载向量之间的运算符
 
-	void fpair::operator /= (const float& v){
+	void Fpair::operator /= (const real& v){
 		*this = *this / v;
 	}
 
-	void fpair::standard(){
-		return *this /= this->length();
+	void Fpair::normalize(){
+		if(this->len() == 0) return;
+		return *this /= this->len();
 	}//标准化向量
 
-	fpair fpair::right_normal(){
-		return fpair(-this->y, this->x);
+	Fpair Fpair::right_normal(){
+		return Fpair(-this->y, this->x);
 	}
 
-	void fpair::rotate(const float angle){
-		float nx = x * cos(angle) + y * sin(angle);
-		float ny = -x * sin(angle) + y * cos(angle);
+	void Fpair::rotate(const real angle){
+		real nx = x * cos(angle) - y * sin(angle);
+		real ny = x * sin(angle) + y * cos(angle);
 		this->x = nx;
 		this->y = ny;
 	}
 
-	vector rotate(vector vect, const float angle, const vector center){
+	Vector operator * (float s, const Vector& v){
+    	return Vector(s * v.x, s * v.y);
+    }
+
+	Vector rotate(Vector vect, const real angle, const Vector center){
 		vect -= center;
-		vect = vector(vect.x * cos(angle) + vect.y * sin(angle),
+		vect = Vector(vect.x * cos(angle) + vect.y * sin(angle),
 					  -vect.x * sin(angle) + vect.y * cos(angle));
 		vect += center;
 		return vect;
 	}
 
-	float cross_product(const vector a, const vector b){
+	real cross_product(const Vector a, const Vector b){
 		return a.x * b.y - a.y * b.x;
 	}
 
-	vector cross_product(const vector a, const float v){
-		return vector(v * a.y, -v * a.x);
+	Vector cross_product(const Vector a, const real v){
+		return Vector(v * a.y, -v * a.x);
 	}
 
-	vector cross_product(const float v, const vector a){
-		return vector(-v * a.y, v * a.x);
+	Vector cross_product(const real v, const Vector a){
+		return Vector(-v * a.y, v * a.x);
 	}
 
-	float sqr(float v){
+	real sqr(real v){
 		return v * v;
+	}
+
+	real max(real a, real b){
+		return a>b?a:b;
+	}
+
+	real min(real a, real b){
+		return a<b?a:b;
+	}
+
+	int max(int a, int b){
+		return a>b?a:b;
+	}
+
+	int min(int a, int b){
+		return a<b?a:b;
 	}
 }

@@ -1,141 +1,204 @@
+#include"body.h"
+#include"shape.h"
 #include"coll_inf.h"
-#include"circle.h"
-#include"rectangle.h"
-#include"polygon.h"
 #include"collision.h"
-#include<cstdio>
+#include"cmath"
 
 namespace pys{
 
-	bool collision_detc(circle *A, circle *B){
-		vector rel_pos = B->center - A->center; //相对位置
-		float r = A->radius + B->radius;
-		if(rel_pos.sqlength() > r * r)
-			return 0; //没有碰撞
-		
-		float d = rel_pos.length();
-		coll_inf inf(A, B);
+    typedef bool (*collision_func) (Body *A, Body *B, Coll_inf*);
 
-		if(d != 0){
-			inf.penetration = r - d;
-			inf.normal = rel_pos / d;
-		}
-		else{
-			inf.penetration = r;
-			inf.normal = vector(1, 0);
-		}
+    collision_func coll_dect_func[Shape::count][Shape::count] ={
+        {
+            circle_to_circle, circle_to_polygon
+        },
+        {
+            polygon_to_circle, polygon_to_polygon
+        },
+    };
 
-		inf.contact_count = 1;
-		inf.contact_point[0] = (A->center + B->center) / 2;
-		inf.init();
-		inf.solve();
-		return 1;
-	}
+    bool collision_dect(Body *A, Body *B, Coll_inf *inf){
+        inf->A = A;
+        inf->B = B;
+        return coll_dect_func[A->shape->get_type()][B->shape->get_type()](A, B, inf);
+    }
 
-	bool collision_detc(rectangle *A, rectangle *B){
-		vector rel_pos = B->center - A->center;
-		float x_dis = A->xlen + B->xlen, x_pene;
-		x_dis /= 2;
+    bool circle_to_circle(Body *A, Body *B, Coll_inf *inf){
 
-		if(x_pene = x_dis - fabs(rel_pos.x) > 0){ //x轴投影检测
-			float y_dis = A->ylen + B->ylen, y_pene;
-			y_dis /= 2;
-			if(y_pene = y_dis - fabs(rel_pos.y) > 0){ //y轴投影检测
-				coll_inf inf(A, B);
-				if(x_pene > y_pene){
-					
-				}
-			}
-		}
-	}
+        Circle *a = (Circle*) A->shape;
+        Circle *b = (Circle*) B->shape;
 
-	float count_1d_line_penetration(fpair A, fpair B){
-		if(A.x > B.x) swap(A, B);
-		return A.y - B.x;
-	}
+        Vector rel_pos = B->center - A->center;
+        real r_sum = a->radius + b->radius;
 
-	coll_inf SAT_from_A_to_B(polygon *A, polygon *B){
-		int len = A->edges_num;
-		float min_penetration = 1e10f;
-		vector min_normal;
-		for(int i = 0; i < len; i++){
-			vector n = A->edges_normal[i];
-			float projection_between_center = fabs( n * (A->center - B->center));
-			float projection_A, projection_B;
-			if((B->center - A->center) * n > 0){
-				projection_A = (A->get_supporting_point(n) - A->center) * n;
-				projection_B = (B->center - B->get_supporting_point(n * -1.0)) * n;
-			}
-			else{
-				projection_A = (A->center - A->get_supporting_point(n * -1.0)) * n;
-				projection_B = (B->get_supporting_point(n) - B->center) * n;
-			}
-			if(projection_A + projection_B <= projection_between_center){
-				coll_inf ret(A, B);
-				ret.penetration = -1;
-				return ret;
-			}
-			float new_penetration = projection_A + projection_B - projection_between_center;
-			if(new_penetration < min_penetration){
-				min_penetration = new_penetration;
-				min_normal = n;
-			}
-		}
-		coll_inf ret(A, B);
-		ret.normal = min_normal;
-		ret.penetration = min_penetration;
-		return ret;
-	}
+        if(rel_pos.sqrlen() > sqr(r_sum)){
+            return 0; //没有碰撞
+        }
 
-	point find_clipping_point(polygon *A, polygon *B, coll_inf &inf);
+        real d = rel_pos.len();
+        inf->peneration = r_sum - d;
 
-	bool collision_detc(polygon *A, polygon *B){
-		coll_inf inf_1 = SAT_from_A_to_B(A, B);
-		if(inf_1.penetration < 0) return 0;
-		coll_inf inf_2 = SAT_from_A_to_B(B, A);
-		if(inf_2.penetration < 0) return 0;
-		coll_inf inf(A, B);
-		if(inf_1.penetration < inf_2.penetration){
-			inf.penetration = inf_1.penetration;
-			inf.normal = inf_1.normal;
-		}
-		else{
-			inf.penetration = inf_2.penetration;
-			inf.normal = inf_2.normal * -1;
-		}
+        if(d != 0)
+            inf->normal = rel_pos / d;
+        else
+            inf->normal = Vector(1, 0);
 
-		if(inf.normal * (B->center - A->center) < 0) inf.normal *= -1.0;
+        inf->contact_count = 1;
+        inf->contact_points[0] = (A->center + B->center) / 2;
+        return 1;
+    }
 
-		inf.init();
-		inf.solve();
-		return 1;
-	}
+    bool circle_to_polygon(Body *A, Body *B, Coll_inf* inf){
+        Circle *a = (Circle*) A->shape;
+        Polygon *b = (Polygon*) B->shape;
+        for(int i = 0; i < b->vectices_num; i++){
+            Vector n = b->normals[i];
+
+        }
+    }
+
+    bool polygon_to_circle(Body *A, Body *B, Coll_inf* inf){
+        
+    }
+
+    void count_best_line(Polygon *o, Vector dir, Point *line){
+        int *p_ind = new int;
+        Point p = o->get_support(dir, p_ind);
+        Point np = o->vectices[(*p_ind + 1) == o->vectices_num?0:(*p_ind + 1)];
+        Point pp = o->vectices[*p_ind? (*p_ind - 1) : o->vectices_num - 1];
+        Vector l1 = p - np;
+        Vector l2 = pp - p;
+        l1.normalize();
+        l2.normalize();
+
+        if(fabs(l1 * dir) < fabs(l2 * dir)){
+            line[0] = p + o->body->center;
+            line[1] = np + o->body->center;
+        }
+        else{
+            line[0] = pp + o->body->center;
+            line[1] = p + o->body->center;
+        }
+        return;
+    }
+
+    void cut(Point* Points, int &pn, Point cp, Vector dir, int last_sept = 0){
+        if(pn == 1) return;
+        Point pa = Points[0];
+        Point pb = Points[1];
+        pn = 0;
+
+        real pro_cp = cp * dir;
+        real pro_a = pa * dir - pro_cp;
+        real pro_b = pb * dir - pro_cp;
+
+        if(pro_a > 0) Points[pn++] = pa;
+        if(pro_b > 0) Points[pn++] = pb;  //加入在cp为分解 dir方向上的点
+
+        if(pro_a * pro_b < 0){
+            Vector dv = pb - pa;
+            real k = pro_a / (pro_a - pro_b);
+            Points[pn++] = pa + dv * k;
+        }
+
+        if(last_sept){
+            real pro0 = Points[0] * dir;
+            real pro1 = Points[1] * dir;
+            if(fabs(pro0 - pro1) < EPSILON) return;
+            if(pro0 > pro1){
+                pn = 1;
+            }
+            if(pro1 > pro0){
+                pn = 1;
+                Points[0] = Points[1];
+            }
+        }
+
+        return;
+    }
+
+    void count_contact_points(Polygon *A, Polygon *B, Coll_inf *inf){
+        Point la[2], lb[2];
+        count_best_line(A, inf->normal, la);
+        count_best_line(B, -inf->normal, lb);
+
+        Point *ref, *inc;
+        Vector la_ = la[1] - la[0];
+        Vector lb_ = lb[1] - lb[0];
+        la_.normalize();
+        lb_.normalize(); 
+
+        Vector normal;
+
+        if(fabs(la_ * inf->normal) < fabs(lb_ * inf->normal)){
+            ref = la;
+            inc = lb;
+            normal = -inf->normal;
+        }
+        else{
+            ref = lb;
+            inc = la;
+            normal = inf->normal;
+        } //确定反射面和碰撞面 以及碰撞法线
+
+        inf->contact_points[0] = inc[0];
+        inf->contact_points[1] = inc[1];
+        Vector ref_ = ref[1] - ref[0];
+        ref_.normalize();
+
+        cut(inf->contact_points, inf->contact_count, ref[0], ref_);
+        cut(inf->contact_points, inf->contact_count, ref[1], -ref_);
+        cut(inf->contact_points, inf->contact_count, ref[1], normal, 1);
+    }
 
 
-	bool collision_detc(polygon *A, circle *B){
-		
-	}
+    bool SAT(Polygon *A, Polygon *B, Coll_inf* inf){ 
+        //分离轴检测算法
+        Point Acenter = A->body->center;
+        Point Bcenter = B->body->center;
+        Vector rel_p = Bcenter - Acenter;
 
-	bool collision_detc(circle *A, polygon *B){
-		return collision_detc(B, A);
-	}
+        real min_penetration = 1e10f;
+        Vector best_normal(0, 0);
 
-	template <typename T>
-	bool collision_detc(T A, body *B){
-		switch(B->type){
-			case 1: return collision_detc(A, (circle*) B);
-			case 2: return collision_detc(A, (rectangle*) B);
-			case 3: return collision_detc(A, (polygon*) B);
-			default: break;
-		}
-	}
+        for(int i = 0; i < A->vectices_num; i++){
+            Vector n = A->normals[i];
+            float pro_bet_cent = fabs(n * rel_p);
+            float pro_A, pro_B;
+            if(rel_p * n > 0){
+                Point pa = A->get_support(n);
+                Point pb = B->get_support(-n);
+                pro_A = A->get_support(n) * n;
+                pro_B = B->get_support(-n) * -n;
+            }
+            else{
+                pro_A = A->get_support(-n) * -n;
+                pro_B = B->get_support(n) * n;
+            }
+            if(pro_A + pro_B - pro_bet_cent < 0){
+                return 0; //找到分离轴
+            }
+            real new_penetration = pro_A + pro_B - pro_bet_cent;
+            if(min_penetration > new_penetration){
+                min_penetration = new_penetration;
+                best_normal = n;
+            }
+        }
+        if(inf->peneration > min_penetration){
+            inf->peneration = min_penetration;
+            inf->normal = best_normal;
+        }
+        return 1;
+    }
 
-	bool collision_detc(body *A, body *B){
-		switch(A->type){
-			case 1: return collision_detc<circle*>((circle*) A, B);
-			case 2: return collision_detc<rectangle*>((rectangle*) A, B);
-			case 3: return collision_detc<polygon*>((polygon*) A, B);
-			default: break;
-		}
-	}
+    bool polygon_to_polygon(Body *A, Body *B, Coll_inf* inf){
+        Polygon *a = (Polygon*) (A->shape);
+        Polygon *b = (Polygon*) (B->shape);
+        inf->peneration = 1e10;
+        if(!SAT(a, b, inf)) return 0;
+        if(!SAT(b, a, inf)) return 0;
+        if(inf->normal * (B->center - A->center) < 0) inf->normal = -inf->normal;
+        count_contact_points(a, b, inf);
+        return 1;
+    }
 }

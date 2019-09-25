@@ -1,11 +1,10 @@
 gxx := g++
-flag := -W -IF:/Github/phy_sim/headers -g
+flag := -W -Iheaders -g
 libr := -lopengl32 -lfreeglut -lglu32
-object := main.o fpair.o line.o body.o rectangle.o \
-polygon.o circle.o coll_inf.o collision.o world.o gra.o const.o
+object := main.o fpair.o body.o shape.o \
+coll_inf.o collision.o world.o const.o render.o
 
 VPATH := src:headers:o
-
 o_dir = o
 
 main.exe : $(object)
@@ -17,34 +16,25 @@ main.o : main.cpp
 fpair.o : fpair.cpp
 	$(gxx) -c $< $(flag) -o $(o_dir)/$@
 
-line.o : line.cpp fpair.h
+body.o : body.cpp fpair.h shape.h
 	$(gxx) -c $< $(flag) -o $(o_dir)/$@
 
-body.o : body.cpp fpair.o line.h
+shape.o : shape.cpp body.h fpair.h
 	$(gxx) -c $< $(flag) -o $(o_dir)/$@
 
-rectangle.o : rectangle.cpp body.h 
+coll_inf.o : coll_inf.cpp body.h shape.h collision.h
 	$(gxx) -c $< $(flag) -o $(o_dir)/$@
 
-circle.o : circle.cpp body.h
+collision.o : collision.cpp body.h shape.h
 	$(gxx) -c $< $(flag) -o $(o_dir)/$@
 
-polygon.o : polygon.cpp body.h
+world.o : world.cpp collision.h coll_inf.h
 	$(gxx) -c $< $(flag) -o $(o_dir)/$@
-
-coll_inf.o : coll_inf.cpp fpair.h
-	$(gxx) -c $< $(flag) -o $(o_dir)/$@
-
-collision.o : collision.cpp rectangle.h circle.h polygon.h
-	$(gxx) -c $< $(flag) -o $(o_dir)/$@
-
-world.o : world.cpp collision.h
-	$(gxx) -c $< $(flag) -o $(o_dir)/$@
-
-gra.o : gra.cpp world.h
-	$(gxx) -c $< $(flag) -o $(o_dir)/$@ $(libr)
 
 const.o : const.cpp fpair.h
+	$(gxx) -c $< $(flag) -o $(o_dir)/$@
+
+render.o : render.cpp shape.h body.h
 	$(gxx) -c $< $(flag) -o $(o_dir)/$@
 
 clean :

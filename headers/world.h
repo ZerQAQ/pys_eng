@@ -1,33 +1,33 @@
-#ifndef PYS_WORLD_H
-#define PYS_WORLD_H
+#ifndef WORLD_H
+#define WORLD_H
 
-#include<vector>
 #include"fpair.h"
+#include"Shape.h"
+#include"Body.h"
+#include"coll_inf.h"
 
 namespace pys{
-    struct world{
-		std::vector<body*> world;
+    struct World
+    {
+        std::vector<Body*> world;
+        std::vector<Coll_inf> contact;
+        int size;
+        real dt;
 
-		void add_circle(point center, float radius,
-		 float mass, vector speed = vector(0, 0));
-		
-		void add_rectangle(point leftup, point rightdown,
-		 float mass, vector speed = vector(0, 0));
+        World(real dt_);
 
-		void add_rectangle(point center, float xlen, float ylen,
-		 float mass, vector speed = vector(0, 0));
+        void set_dt(real dt_);
 
-		void add_polygon(point center, int edges_num, float edges_length, 
-		float mass, vector speed = vector(0, 0));
+        void add(Shape* shape, real x, real y);
 
-		void add_polygon(std::vector<point> vertexs, float mass, vector speed);
+        void intergrate_force(Body *o);
 
-		body* operator[] (const int index);
+        void intergrate_speed(Body *o);
 
-		void update(float time);
+        void update();
 
-		int size();
-	};
+        void render();
+    };
 }
 
 #endif

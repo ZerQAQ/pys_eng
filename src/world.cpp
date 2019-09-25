@@ -1,52 +1,75 @@
-#include"polygon.h"
-#include"circle.h"
-#include"rectangle.h"
+#include"fpair.h"
+#include"shape.h"
+#include"coll_inf.h"
+#include"body.h"
+#include"const.h"
 #include"collision.h"
+#include"render.h"
 #include"world.h"
+#include<vector>
 
 namespace pys{
 
-	void world::add_circle(point center, float radius,
-		float mass, vector speed){
-		world.push_back(new circle(center, radius, mass, speed));
-	}
-	
-	void world::add_rectangle(point leftup, point rightdown,
-		float mass, vector speed){
-		world.push_back(new rectangle(leftup, rightdown, mass, speed));
-	}
+    World::World(real dt_):dt(dt_) {}
 
-	void world::add_rectangle(point center, float xlen, float ylen,
-		float mass, vector speed){
-		world.push_back(new rectangle(center, xlen, ylen, mass, speed));
-	}
+    void World::set_dt(real dt_){
+        dt = dt_;
+    }
 
-	void world::add_polygon(point center, int edges_num, float edges_length,
-		float mass, vector speed){
-		world.push_back(new polygon(center, edges_num, edges_length, mass, speed));
-	}
+    void World::add(Shape* shape, real x, real y){
+        Body* object = new Body(shape, x, y);
+        world.push_back(object);
+        size++;
+    }
 
-	void world::add_polygon(std::vector<point> vertexs, float mass, vector speed){
-		world.push_back(new polygon(vertexs, mass, speed));
-	}
+    void World::intergrate_force(Body *o){
+        if(!o->inv_mass) return;
 
-	body* world::operator[] (const int index){
-		return world[index];
-	}
+        o->speed += (o->force * o->inv_mass) * (dt / 2.0);
+        o->anglespeed += (o->torque * o->inv_inertia) * (dt / 2.0);
+    }
 
-	void world::update(float time){
-		const int len = world.size();
-		for(int i = 0; i < len; i++){
-			for(int j = i + 1; j < len; j++){
-				collision_detc(world[i], world[j]);
-			}
-		}
-		for(int i = 0; i < len; i++){
-			world[i]->update(time);
-		}
-	}
+    void World::intergrate_speed(Body *o){
+        if(!o->inv_mass) return;
 
-	int world::size(){
-		return world.size();
-	}
+        if(o->speed.len() > EPSILON)
+            o->center += o->speed * dt;
+        o->shape->rotate_shape(o->anglespeed * dt);
+    }
+
+    void World::update(){
+        contact.clear();
+        for(Body* object : world){
+            object->apply_force(G * object->mass, Vector(0, 0)); //重力
+            intergrate_force(object);
+            intergrate_speed(object);
+            intergrate_force(object); //inter_force一次应用一半 可以提高精度
+            object->force = object->torque = 0;
+        }
+
+        Coll_inf *inf = new Coll_inf(0, 0);
+        for(int i = 0; i < size; i++){
+            for(int j = i + 1; j < size; j++){
+                if(collision_dect(world[i], world[j], inf)){
+                    inf->apply_impulse();
+                    contact.push_back(*inf);
+                }
+            }
+        }
+    }
+
+    void World::render(){
+        for(Body* object : world){
+            draw_shape(object->shape);
+            draw_point(object->center.x, object->center.y);
+        }
+        for(Coll_inf inf : contact){
+            for(int i = 0; i < inf.contact_count; i++){
+                draw_line(inf.contact_points[i], inf.contact_points[i] - (inf.impulse[i] / 500) - (inf.tangent_impluse[i] / 500), Color(0, 1, 0));
+                //draw_line(inf.contact_points[i], inf.contact_points[i] - (inf.tangent_impluse[i] / 100), Color(0, 0, 1));
+                draw_point(inf.contact_points[i].x, inf.contact_points[i].y, Color(1, 0, 0));
+            }
+        }
+    }
+    
 }

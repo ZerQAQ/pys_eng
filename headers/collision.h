@@ -1,26 +1,20 @@
-#ifndef PYS_COLLISION_H
-#define PYS_COLLISION_H
+#ifndef COLLISION_H
+#define COLLISION_H
 
-#include"circle.h"
-#include"rectangle.h"
-#include"polygon.h"
+#include"body.h"
+#include"coll_inf.h"
 
 namespace pys{
 
-    bool collision_detc(circle *A, circle *B);
+    bool collision_dect(Body *A, Body *B, Coll_inf *inf);
 
-    bool collision_detc(rectangle *A, rectangle *B);
+    bool circle_to_circle(Body *A, Body *B, Coll_inf *inf);
 
-    bool collision_detc(polygon *A, polygon *B);
+    bool polygon_to_circle(Body *A, Body *B, Coll_inf *inf);
 
-    bool collision_detc(polygon *A, circle *B);
+    bool circle_to_polygon(Body *A, Body *B, Coll_inf *inf);
 
-    bool collision_detc(circle *A, polygon *B);
-
-    template <typename T>
-	bool collision_detc(T A, body *B);
-
-    bool collision_detc(body *A, body *B);
+    bool polygon_to_polygon(Body *A, Body *B, Coll_inf *inf);
 }
 
 #endif
