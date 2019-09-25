@@ -52,7 +52,8 @@ namespace pys{
         }
     }
 
-    void cut(point* points, int &pn, point cp, vector dir, int last_sept = 0){ //保留cp作为起点 dir为方向的点
+    void cut(point* points, int &pn, point cp, vector dir, int last_sept = 0){ 
+        //保留cp作为起点 dir为方向的点
         if(pn == 1) return;
         float o = cp * dir; //切割点在切割法线上的投影
         point pa = points[0];
@@ -112,7 +113,7 @@ namespace pys{
 
         vector prodir = ref.p2 - ref.p1;
         prodir.standard();
-
+    //?
         normal = normal - (prodir * (normal * prodir));
         normal.standard();
 
@@ -128,6 +129,8 @@ namespace pys{
 
     void coll_inf::solve(){
         count_contact_points((polygon* ) A,(polygon* ) B, *this);
+
+        normal.standard();
 
         float ima, imb, iia, iib;
         ima = inv(A->mass);

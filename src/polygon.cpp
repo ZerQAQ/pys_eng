@@ -34,7 +34,9 @@ namespace pys{
         edges.push_back(line(vertexs[0], vertexs[edges_num - 1]));
 
         for(int i = 0; i < edges_num; i++){
-            edges_normal.push_back(edges_dir[i].right_normal());
+            vector normal = edges_dir[i].right_normal();
+            if(normal * (vertexs[i] - center) < 0) normal = normal * -1;
+            edges_normal.push_back(normal);
         }
 
         for(int i = 0; i < edges_num; i++){

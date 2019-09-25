@@ -26,7 +26,7 @@ namespace pys{
 		}
 
 		inf.contact_count = 1;
-		inf.contact_point[0] = A->center + B->center / 2;
+		inf.contact_point[0] = (A->center + B->center) / 2;
 		inf.init();
 		inf.solve();
 		return 1;
